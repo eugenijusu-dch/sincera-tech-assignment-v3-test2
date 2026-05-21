@@ -46,6 +46,7 @@ app.MapScalarApiReference(options =>
 app.MapGet("/", () => Results.Redirect("/scalar/v1")).ExcludeFromDescription();
 
 app.MapPolicyEndpoints();
+app.MapClaimEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {
