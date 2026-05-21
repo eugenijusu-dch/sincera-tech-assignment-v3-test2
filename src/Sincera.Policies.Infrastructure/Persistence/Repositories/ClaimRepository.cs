@@ -5,11 +5,9 @@ using Sincera.Policies.Domain.Policies;
 
 namespace Sincera.Policies.Infrastructure.Persistence.Repositories;
 
-public sealed class ClaimRepository : IClaimRepository
+public sealed class ClaimRepository(PoliciesDbContext db) : IClaimRepository
 {
-    private readonly PoliciesDbContext _db;
-
-    public ClaimRepository(PoliciesDbContext db) => _db = db;
+    private readonly PoliciesDbContext _db = db;
 
     public async Task<IReadOnlyList<Claim>> GetByPolicyIdAsync(PolicyId policyId, CancellationToken cancellationToken)
     {
@@ -17,4 +15,6 @@ public sealed class ClaimRepository : IClaimRepository
             .Where(c => c.PolicyId == policyId)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task AddAsync(Claim claim, CancellationToken cancellationToken) => await _db.Claims.AddAsync(claim, cancellationToken);
 }
