@@ -59,6 +59,20 @@ public sealed class Policy : Entity<PolicyId>
         RaiseEvent(new PolicyActivated(Id, CustomerId, EffectiveDate.Value, AnnualPremium.Value, clock.UtcNow));
     }
 
+    public void Cancel(DateOnly effectiveCancellationDate, string reason, decimal refundAmount, IClock clock)
+    {
+        if (Status != PolicyStatus.Active)
+            throw new InvalidPolicyTransitionException(Status, PolicyStatus.Cancelled);
+        if (clock is null) throw new ArgumentNullException(nameof(clock));
+
+        Status = PolicyStatus.Cancelled;
+        CancellationRefund = refundAmount;
+        CancellationReason = reason;
+        CancelledAtUtc = clock.UtcNow;
+
+        RaiseEvent(new PolicyCancelled(Id, CustomerId, effectiveCancellationDate, refundAmount, clock.UtcNow));
+    }
+
     public void MarkExpired(IClock clock)
     {
         if (clock is null) throw new ArgumentNullException(nameof(clock));
