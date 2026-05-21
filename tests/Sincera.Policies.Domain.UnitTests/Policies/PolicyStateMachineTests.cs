@@ -64,6 +64,32 @@ public class PolicyStateMachineTests
     }
 
     [Fact]
+    public void Cancel_transitions_active_to_cancelled_and_raises_event()
+    {
+        var customer = NewCustomer();
+        var policy = NewActivePolicy(customer);
+        var clock = new FixedClock(Today);
+
+        policy.Cancel(Today, "Customer request", 200m, clock);
+
+        Assert.Equal(PolicyStatus.Cancelled, policy.Status);
+        Assert.Equal(200m, policy.CancellationRefund);
+        Assert.Equal("Customer request", policy.CancellationReason);
+        Assert.Equal(clock.UtcNow, policy.CancelledAtUtc);
+        Assert.Single(policy.DomainEvents, e => e is PolicyCancelled);
+    }
+
+    [Fact]
+    public void Cancel_on_non_active_policy_throws_invalid_transition()
+    {
+        var customer = NewCustomer();
+        var policy = new Policy(new PolicyId("P-draft"), customer.Id);
+
+        Assert.Throws<InvalidPolicyTransitionException>(
+            () => policy.Cancel(Today, "reason", 0m, new FixedClock(Today)));
+    }
+
+    [Fact]
     public void MarkExpired_succeeds_after_expiry_date()
     {
         var customer = NewCustomer();

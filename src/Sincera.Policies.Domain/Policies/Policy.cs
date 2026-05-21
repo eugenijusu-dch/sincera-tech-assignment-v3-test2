@@ -7,7 +7,7 @@ namespace Sincera.Policies.Domain.Policies;
 
 public sealed class Policy : Entity<PolicyId>
 {
-    private readonly List<Coverage> _coverages = new();
+    private readonly List<Coverage> _coverages = [];
 
     private Policy() { }
 
@@ -33,7 +33,7 @@ public sealed class Policy : Entity<PolicyId>
 
     public void AddCoverage(Coverage coverage)
     {
-        if (coverage is null) throw new ArgumentNullException(nameof(coverage));
+        ArgumentNullException.ThrowIfNull(coverage);
         if (Status != PolicyStatus.Draft)
             throw new DomainException("policy.coverage_locked", "Coverage can only be modified while the policy is a draft.");
         _coverages.Add(coverage);
@@ -43,9 +43,9 @@ public sealed class Policy : Entity<PolicyId>
     {
         if (Status != PolicyStatus.Draft)
             throw new InvalidPolicyTransitionException(Status, PolicyStatus.Active);
-        if (customer is null) throw new ArgumentNullException(nameof(customer));
-        if (calculator is null) throw new ArgumentNullException(nameof(calculator));
-        if (clock is null) throw new ArgumentNullException(nameof(clock));
+        ArgumentNullException.ThrowIfNull(customer);
+        ArgumentNullException.ThrowIfNull(calculator);
+        ArgumentNullException.ThrowIfNull(clock);
         if (!customer.Id.Equals(CustomerId))
             throw new DomainException("policy.customer_mismatch", "Customer does not own this policy.");
         if (_coverages.Count == 0)
@@ -59,9 +59,23 @@ public sealed class Policy : Entity<PolicyId>
         RaiseEvent(new PolicyActivated(Id, CustomerId, EffectiveDate.Value, AnnualPremium.Value, clock.UtcNow));
     }
 
+    public void Cancel(DateOnly effectiveCancellationDate, string reason, decimal refundAmount, IClock clock)
+    {
+        if (Status != PolicyStatus.Active)
+            throw new InvalidPolicyTransitionException(Status, PolicyStatus.Cancelled);
+        ArgumentNullException.ThrowIfNull(clock);
+
+        Status = PolicyStatus.Cancelled;
+        CancellationRefund = refundAmount;
+        CancellationReason = reason;
+        CancelledAtUtc = clock.UtcNow;
+
+        RaiseEvent(new PolicyCancelled(Id, CustomerId, effectiveCancellationDate, refundAmount, clock.UtcNow));
+    }
+
     public void MarkExpired(IClock clock)
     {
-        if (clock is null) throw new ArgumentNullException(nameof(clock));
+        ArgumentNullException.ThrowIfNull(clock);
         if (Status != PolicyStatus.Active)
             throw new InvalidPolicyTransitionException(Status, PolicyStatus.Expired);
         if (ExpiryDate is null || ExpiryDate.Value > clock.Today)
