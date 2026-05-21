@@ -47,6 +47,7 @@ app.MapGet("/", () => Results.Redirect("/scalar/v1")).ExcludeFromDescription();
 
 app.MapPolicyEndpoints();
 app.MapClaimEndpoints();
+app.MapCustomerEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {
