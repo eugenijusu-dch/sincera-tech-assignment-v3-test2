@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Sincera.Policies.Application.Abstractions;
+using Sincera.Policies.Domain.Claims;
 using Sincera.Policies.Domain.Common;
 
 namespace Sincera.Policies.Api.IntegrationTests;
@@ -13,6 +14,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 {
     public Mock<IPolicyRepository> Policies { get; } = new(MockBehavior.Loose);
     public Mock<ICustomerRepository> Customers { get; } = new(MockBehavior.Loose);
+    public Mock<IClaimRepository> Claims { get; } = new(MockBehavior.Loose);
     public Mock<IUnitOfWork> UnitOfWork { get; } = new(MockBehavior.Loose);
     public IClock Clock { get; } = new TestClock(new DateOnly(2026, 5, 20));
 
@@ -27,6 +29,9 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             services.RemoveAll<ICustomerRepository>();
             services.AddScoped(_ => Customers.Object);
 
+            services.RemoveAll<IClaimRepository>();
+            services.AddScoped(_ => Claims.Object);
+
             services.RemoveAll<IUnitOfWork>();
             services.AddScoped(_ => UnitOfWork.Object);
 
@@ -39,6 +44,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     {
         Policies.Reset();
         Customers.Reset();
+        Claims.Reset();
         UnitOfWork.Reset();
     }
 
