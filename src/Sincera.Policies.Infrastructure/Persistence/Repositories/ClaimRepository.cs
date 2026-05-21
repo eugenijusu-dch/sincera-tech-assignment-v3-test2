@@ -15,4 +15,6 @@ public sealed class ClaimRepository(PoliciesDbContext db) : IClaimRepository
             .Where(c => c.PolicyId == policyId)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task AddAsync(Claim claim, CancellationToken cancellationToken) => await _db.Claims.AddAsync(claim, cancellationToken);
 }
