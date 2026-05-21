@@ -13,6 +13,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 {
     public Mock<IPolicyRepository> Policies { get; } = new(MockBehavior.Loose);
     public Mock<ICustomerRepository> Customers { get; } = new(MockBehavior.Loose);
+    public Mock<IClaimRepository> Claims { get; } = new(MockBehavior.Loose);
     public Mock<IUnitOfWork> UnitOfWork { get; } = new(MockBehavior.Loose);
     public IClock Clock { get; } = new TestClock(new DateOnly(2026, 5, 20));
 
@@ -27,6 +28,9 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             services.RemoveAll<ICustomerRepository>();
             services.AddScoped(_ => Customers.Object);
 
+            services.RemoveAll<IClaimRepository>();
+            services.AddScoped(_ => Claims.Object);
+
             services.RemoveAll<IUnitOfWork>();
             services.AddScoped(_ => UnitOfWork.Object);
 
@@ -39,18 +43,13 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     {
         Policies.Reset();
         Customers.Reset();
+        Claims.Reset();
         UnitOfWork.Reset();
     }
 
-    private sealed class TestClock : IClock
+    private sealed class TestClock(DateOnly today) : IClock
     {
-        public TestClock(DateOnly today)
-        {
-            Today = today;
-            UtcNow = today.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        }
-
-        public DateTime UtcNow { get; }
-        public DateOnly Today { get; }
+        public DateTime UtcNow { get; } = today.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        public DateOnly Today { get; } = today;
     }
 }

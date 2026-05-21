@@ -1,6 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Sincera.Policies.Api.Contracts.Policies;
 using Sincera.Policies.Application.Policies.Commands.ActivatePolicy;
+using Sincera.Policies.Application.Policies.Commands.CancelPolicy;
 using Sincera.Policies.Application.Policies.Queries.GetPolicyById;
 using Sincera.Policies.Domain.Policies;
 
@@ -24,6 +26,12 @@ public static class PolicyEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        group.MapPost("/{id}/cancel", Cancel)
+            .WithName("CancelPolicy")
+            .Produces<CancelPolicyResponse>()
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         return app;
     }
 
@@ -42,6 +50,18 @@ public static class PolicyEndpoints
         CancellationToken cancellationToken)
     {
         var response = await mediator.Send(new ActivatePolicyCommand(new PolicyId(id)), cancellationToken);
+        return Results.Ok(response);
+    }
+
+    private static async Task<IResult> Cancel(
+        [FromRoute] string id,
+        [FromBody] CancelPolicyRequest request,
+        IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        var response = await mediator.Send(
+            new CancelPolicyCommand(new PolicyId(id), request.EffectiveCancellationDate, request.Reason),
+            cancellationToken);
         return Results.Ok(response);
     }
 }
