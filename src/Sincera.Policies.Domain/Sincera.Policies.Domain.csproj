@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Sincera.Policies.Domain</RootNamespace>
+    <AssemblyName>Sincera.Policies.Domain</AssemblyName>
+  </PropertyGroup>
+</Project>
