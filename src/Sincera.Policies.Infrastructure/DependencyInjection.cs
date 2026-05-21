@@ -28,6 +28,7 @@ public static class DependencyInjection
 
         services.AddScoped<IPolicyRepository, PolicyRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<IClaimRepository, ClaimRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddSingleton<IClock, SystemClock>();
